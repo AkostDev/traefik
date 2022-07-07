@@ -10,7 +10,7 @@ cd traefik
 
 ## 2. Создать файл `acme.json` и изменить права на файл
 
-> В файле будут храниться все сертификаты LetsEncrypt
+> В файле будут храниться все сертификаты Let's Encrypt
 
 ```console
 touch acme.json
@@ -18,12 +18,18 @@ touch acme.json
 chmod 600 acme.json
 ```
 
-## 3. Создаем Docker сеть
+## 3. Заполняем переменные окружения
+```console
+cp .env.example .env
+```
+Указываем Email для сертификатов Let's Encrypt
+
+## 4. Создаем Docker сеть
 ```console
 docker network create proxy
 ```
 
-## 4. Запускаем контейнер
+## 5. Запускаем контейнер
 ```console
 docker compose up -d
 ```
