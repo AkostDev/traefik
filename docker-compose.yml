@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3"
 
 services:
   traefik:
@@ -15,27 +15,37 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./acme.json:/acme.json
+      - ./log/traefik.log:/traefik.log
+      - ./log/access.log:/access.log
     command:
-      # Отключаем dashboard
-      - "--api.dashboard=false"
+      ## Отключаем dashboard
+      - "--api.dashboard=${TRAEFIK_DASHBOARD}"
       # Указываем провайдера Docker и сеть
       - "--providers.docker=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.watch=true"
       - "--providers.docker.network=proxy"
-      # Точки входа
+      ## Точки входа
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      # Настраиваем Let's Encrypt
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      ## Настраиваем Let's Encrypt
+      - "--certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_LA_SERVER}"
+      - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_LA_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--"
+      ## Логирование
+      - "--log.filePath=/traefik.log"
+      - "--log.level=${TRAEFIK_LOG_LEVEL}"
+      - "--log.format=json"
+      - "--accesslog.filepath=/access.log"
+      - "--accesslog.format=json"
+      - "--accesslog.filters.statusCodes=300-308,400-499,500-526"
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_URL}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
 
 networks:
-  proxy:
-    external: true
+  proxy: {}

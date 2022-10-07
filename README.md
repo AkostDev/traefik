@@ -8,12 +8,12 @@ git clone https://github.com/Woody174/traefik.git
 cd traefik
 ```
 
-## 2. Создать файл `acme.json` и изменить права на файл
+## 2. Создать файл `acme.json` и изменить права на файл. Также создать файлы для логов
 
 > В файле будут храниться все сертификаты Let's Encrypt
 
 ```console
-touch acme.json
+touch acme.json log/traefik.log log/access.log
 
 chmod 600 acme.json
 ```
@@ -24,12 +24,8 @@ cp .env.example .env
 ```
 Указываем Email для сертификатов Let's Encrypt
 
-## 4. Создаем Docker сеть
-```console
-docker network create proxy
-```
 
-## 5. Запускаем контейнер
+## 4. Запускаем контейнер
 ```console
 docker compose up -d
 ```
@@ -54,6 +50,5 @@ services:
             - "traefik.http.routers.<ROUTE_NAME>.rule=Host(`<HOST_NAME>`)"
 
 networks:
-  proxy:
-    external: true
+  proxy: {}
 ```
