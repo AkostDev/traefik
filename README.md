@@ -34,7 +34,7 @@ ___
 
 ## Добавление хостов
 
-В файле `compose.yml` добавить следущие строки, заменив <ROUTE_NAME>, <HOST_NAME> на свои названия:
+В файле `docker-compose.yml` добавить следущие строки, заменив <ROUTE_NAME>, <HOST_NAME> на свои названия:
 
 ```text
 services:

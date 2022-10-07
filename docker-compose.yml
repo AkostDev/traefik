@@ -18,24 +18,24 @@ services:
       - ./log/traefik.log:/traefik.log
       - ./log/access.log:/access.log
     command:
-      ## Отключаем dashboard
+      ## Dashboard
       - "--api.dashboard=${TRAEFIK_DASHBOARD}"
-      # Указываем провайдера Docker и сеть
+      ## Providers
       - "--providers.docker=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.watch=true"
       - "--providers.docker.network=proxy"
-      ## Точки входа
+      ## Entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      ## Настраиваем Let's Encrypt
+      ## Let's Encrypt
       - "--certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_LA_SERVER}"
       - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_LA_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      ## Логирование
+      ## Logging
       - "--log.filePath=/traefik.log"
       - "--log.level=${TRAEFIK_LOG_LEVEL}"
       - "--log.format=json"
