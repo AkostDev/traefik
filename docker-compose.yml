@@ -8,7 +8,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - proxy
+      - traefik_proxy
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
@@ -25,27 +25,29 @@ services:
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.watch=true"
-      - "--providers.docker.network=proxy"
+      - "--providers.docker.network=traefik_proxy"
       ## Entrypoints
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
       ## Let's Encrypt
       - "--certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_LA_SERVER}"
       - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_LA_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http"
       ## Logging
-      - "--log.filePath=/traefik.log"
       - "--log.level=${TRAEFIK_LOG_LEVEL}"
       - "--log.format=json"
       - "--accesslog.filepath=/access.log"
       - "--accesslog.format=json"
-      - "--accesslog.filters.statusCodes=300-308,400-499,500-526"
+      - "--accesslog.filters.statusCodes=300-308,400-403,405-499,500-526"
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_URL}`)"
+      - "traefik.enable=${TRAEFIK_DASHBOARD}"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_URL}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
       - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=https"
+      - "traefik.http.routers.dashboard.tls=true"
 
 networks:
-  proxy: {}
+  traefik_proxy:
+    external: true

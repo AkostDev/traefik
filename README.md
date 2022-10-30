@@ -25,7 +25,12 @@ cp .env.example .env
 Указываем Email для сертификатов Let's Encrypt
 
 
-## 4. Запускаем контейнер
+## 4. Создаём сеть
+```console
+docker network create traefik_proxy
+```
+
+## 5. Запускаем контейнер
 ```console
 docker compose up -d
 ```
