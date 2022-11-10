@@ -28,6 +28,7 @@ services:
       - "--providers.docker.network=traefik_proxy"
       ## Entrypoints
       - "--entrypoints.http.address=:80"
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
       - "--entrypoints.https.address=:443"
       ## Let's Encrypt
       - "--certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_LA_SERVER}"
