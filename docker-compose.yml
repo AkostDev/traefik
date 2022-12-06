@@ -7,13 +7,13 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    ports:
+      - "80:80"
+      - "443:443"
     networks:
       - traefik_proxy
-    ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./acme.json:/acme.json
       - ./log/traefik.log:/traefik.log
       - ./log/access.log:/access.log
@@ -21,33 +21,36 @@ services:
       ## Dashboard
       - "--api.dashboard=${TRAEFIK_DASHBOARD}"
       ## Providers
-      - "--providers.docker=true"
+      - "--providers.docker"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.exposedByDefault=false"
       - "--providers.docker.watch=true"
       - "--providers.docker.network=traefik_proxy"
       ## Entrypoints
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.http.http.redirections.entryPoint.to=https"
-      - "--entrypoints.https.address=:443"
+      - "--entryPoints.http.address=:80"
+      - "--entryPoints.http.http.redirections.entryPoint.to=https"
+      - "--entryPoints.http.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.https.address=:443"
+      - "--entryPoints.https.http.tls.certResolver=letsEncrypt"
       ## Let's Encrypt
-      - "--certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_LA_SERVER}"
-      - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_LA_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http"
+      - "--certificatesResolvers.letsEncrypt.acme.caServer=${TRAEFIK_LA_SERVER}"
+      - "--certificatesResolvers.letsEncrypt.acme.email=${TRAEFIK_LA_EMAIL}"
+      - "--certificatesResolvers.letsEncrypt.acme.storage=acme.json"
+      - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entrypoint=http"
+      - "--certificatesResolvers.letsEncrypt.acme.tlsChallenge=true"
       ## Logging
       - "--log.level=${TRAEFIK_LOG_LEVEL}"
+      - "--log.filepath=/traefik.log"
       - "--log.format=json"
-      - "--accesslog.filepath=/access.log"
-      - "--accesslog.format=json"
-      - "--accesslog.filters.statusCodes=300-308,400-403,405-499,500-526"
+      - "--accessLog.filepath=/access.log"
+      - "--accessLog.format=json"
+      - "--accessLog.filters.statusCodes=300-308,400-403,405-499,500-526"
     labels:
+      ## Dashboard
       - "traefik.enable=${TRAEFIK_DASHBOARD}"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${APP_BASE_URL}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
       - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.entrypoints=https"
+      - "traefik.http.routers.dashboard.entryPoints=https"
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -61,20 +64,10 @@ services:
       - portainer_data:/data
     labels:
       - "traefik.enable=true"
-
-      # Frontend
       - "traefik.http.routers.frontend.rule=Host(`portainer.${APP_BASE_URL}`)"
-      - "traefik.http.routers.frontend.entrypoints=https"
-      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
       - "traefik.http.routers.frontend.service=frontend"
-      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
-
-      # Edge
-      - "traefik.http.routers.edge.rule=Host(`edge.${APP_BASE_URL}`)"
-      - "traefik.http.routers.edge.entrypoints=https"
-      - "traefik.http.services.edge.loadbalancer.server.port=8000"
-      - "traefik.http.routers.edge.service=edge"
-      - "traefik.http.routers.edge.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend.entryPoints=https"
+      - "traefik.http.services.frontend.loadBalancer.server.port=9000"
 
 volumes:
   portainer_data:
