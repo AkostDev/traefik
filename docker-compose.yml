@@ -24,7 +24,7 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
-    container_name: portainer
+    container_name: traefik-portainer
     command: -H unix:///var/run/docker.sock
     restart: always
     networks:
