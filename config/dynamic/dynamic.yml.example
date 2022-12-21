@@ -1,0 +1,52 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`traefik.app.localhost`)"
+      service: api@internal
+      middlewares:
+        - https_redirect
+      entryPoints:
+        - web
+
+    traefik_https:
+      rule: "Host(`traefik.app.localhost`)"
+      service: api@internal
+      entryPoints:
+        - websecure
+      tls:
+        domains:
+          - main: "app.localhost"
+            sans:
+              - "*.app.localhost"
+
+    portainer:
+      rule: "Host(`portainer.app.localhost`)"
+      service: portainer
+      middlewares:
+        - https_redirect
+      entryPoints:
+        - web
+
+    portainer_https:
+      rule: "Host(`portainer.app.localhost`)"
+      service: portainer
+      entryPoints:
+        - websecure
+      tls: { }
+
+  services:
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://portainer:9000"
+
+  middlewares:
+    https_redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+tls:
+  certificates:
+    - certFile: "/certs/local-cert.pem"
+      keyFile: "/certs/local-key.pem"

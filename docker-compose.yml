@@ -14,43 +14,13 @@ services:
       - traefik_proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yml:/traefik.yml:ro
+      - ./config/dynamic:/dynamic
+      - ./config/certs:/certs
       - ./acme.json:/acme.json
-      - ./log/traefik.log:/traefik.log
-      - ./log/access.log:/access.log
-    command:
-      ## Dashboard
-      - "--api.dashboard=${TRAEFIK_DASHBOARD}"
-      ## Providers
-      - "--providers.docker"
-      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.watch=true"
-      - "--providers.docker.network=traefik_proxy"
-      ## Entrypoints
-      - "--entryPoints.http.address=:80"
-      - "--entryPoints.http.http.redirections.entryPoint.to=https"
-      - "--entryPoints.http.http.redirections.entryPoint.scheme=https"
-      - "--entryPoints.https.address=:443"
-      - "--entryPoints.https.http.tls.certResolver=letsEncrypt"
-      ## Let's Encrypt
-      - "--certificatesResolvers.letsEncrypt.acme.caServer=${TRAEFIK_LA_SERVER}"
-      - "--certificatesResolvers.letsEncrypt.acme.email=${TRAEFIK_LA_EMAIL}"
-      - "--certificatesResolvers.letsEncrypt.acme.storage=acme.json"
-      - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entrypoint=http"
-      - "--certificatesResolvers.letsEncrypt.acme.tlsChallenge=true"
-      ## Logging
-      - "--log.level=${TRAEFIK_LOG_LEVEL}"
-      - "--log.filepath=/traefik.log"
-      - "--log.format=json"
-      - "--accessLog.filepath=/access.log"
-      - "--accessLog.format=json"
-      - "--accessLog.filters.statusCodes=300-308,400-403,405-499,500-526"
+      - ./log:/log
     labels:
-      ## Dashboard
-      - "traefik.enable=${TRAEFIK_DASHBOARD}"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.${APP_BASE_URL}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.entryPoints=https"
+      - "traefik.enable=true"
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -64,10 +34,6 @@ services:
       - portainer_data:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`portainer.${APP_BASE_URL}`)"
-      - "traefik.http.routers.frontend.service=frontend"
-      - "traefik.http.routers.frontend.entryPoints=https"
-      - "traefik.http.services.frontend.loadBalancer.server.port=9000"
 
 volumes:
   portainer_data:

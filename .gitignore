@@ -3,3 +3,7 @@ acme.json
 .env
 .DS_Store
 *.log
+/config/traefik.yml
+/config/certs/*
+/config/dynamic/*
+!/config/dynamic/dynamic.yml.example

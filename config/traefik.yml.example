@@ -1,0 +1,55 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  # Enable the Dashboard
+  dashboard: true
+  # Use insecure mode (HTTP) in Dashboard
+  insecure: false
+  # Debug mode - https://doc.traefik.io/traefik/operations/api/#debug
+  debug: false
+
+entryPoints:
+  web:
+    address: ":80"
+
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsEncrypt:
+    acme:
+      email: test@mail.ru
+      storage: acme.json
+      # Production - https://acme-v02.api.letsencrypt.org/directory
+      # Localhost - https://acme-staging-v02.api.letsencrypt.org/directory
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    watch: true
+    exposedByDefault: false
+    network: traefik_proxy
+
+  file:
+    directory: /dynamic
+    watch: true
+
+log:
+  level: ERROR
+  format: json
+  filePath: /log/traefik.log
+
+accessLog:
+  format: json
+  filePath: /log/access.log
+  filters:
+    statusCodes:
+      - "300-308"
+      - "400-403"
+      - "405-499"
+      - "500-526"
