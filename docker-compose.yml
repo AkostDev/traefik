@@ -13,6 +13,7 @@ services:
     networks:
       - traefik_proxy
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yml:/traefik.yml:ro
       - ./config/dynamic:/dynamic
